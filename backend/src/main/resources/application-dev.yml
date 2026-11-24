@@ -1,0 +1,10 @@
+# Dev profile (zero-cost cloud: Render + Neon + Atlas). Environment variables only;
+# there are no defaults for connection details or credentials.
+
+spring:
+  datasource:
+    url: ${APP_DB_URL}
+    username: ${APP_DB_USERNAME}
+    password: ${APP_DB_PASSWORD}
+  mongodb:
+    uri: ${APP_MONGO_URI}

@@ -1,0 +1,15 @@
+# Local profile: connects to infra/docker-compose.yml.
+# Reads the repository's .env (the same file Compose uses), whether the app is started
+# from the repository root or from backend/. Create it with: cp .env.example .env
+
+spring:
+  config:
+    import:
+      - optional:file:.env[.properties]
+      - optional:file:../.env[.properties]
+  datasource:
+    url: jdbc:postgresql://localhost:${LOCAL_POSTGRES_PORT}/${LOCAL_POSTGRES_DB}
+    username: ${LOCAL_POSTGRES_USER}
+    password: ${LOCAL_POSTGRES_PASSWORD}
+  mongodb:
+    uri: mongodb://${LOCAL_MONGO_ROOT_USER}:${LOCAL_MONGO_ROOT_PASSWORD}@localhost:${LOCAL_MONGO_PORT}/${LOCAL_MONGO_DB}?authSource=admin

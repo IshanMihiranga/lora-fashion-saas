@@ -543,8 +543,8 @@ If the plan must change: propose, get approval, write an ADR, update this file.
 ## 19. Current project status
 
 **Phase:** 0 — Foundation (in progress).
-**Current step:** Part 0.1 committed and pushed 2026-11-24.
-**Next part:** 0.2 — Backend bootstrap (brief posted, awaiting owner approval).
+**Current step:** Part 0.2 committed and pushed 2026-11-24.
+**Next part:** 0.3 — Shared kernel (brief posted, awaiting owner approval).
 
 ### Completed
 - [x] Phase 1 — Requirement analysis
@@ -554,9 +554,10 @@ If the plan must change: propose, get approval, write an ADR, update this file.
 - [x] Owner decisions recorded: brand Lora Fashions, package `lk.lorafashions`,
       remote `https://github.com/IshanMihiranga/lora-fashion-saas.git`, plans and values in §3
 - [x] Part 0.1 — Repository foundation (local object storage changed to SeaweedFS, ADR-0002)
+- [x] Part 0.2 — Backend bootstrap (Spring Boot 4.2.0, Spring Modulith 2.2.0; dependencies added per part when first used)
 
 ### Pending
-- [ ] Parts 0.2 → 12.4 (see `docs/DEVELOPMENT_PARTS.md`)
+- [ ] Parts 0.3 → 12.4 (see `docs/DEVELOPMENT_PARTS.md`)
 - [ ] Part 13.1 courier integration (after V1)
 
 ### Part log
@@ -565,3 +566,4 @@ Commit column: the commit subject's part tag; find the hash with `git log --grep
 | Part | Status | Commit | Date |
 | --- | --- | --- | --- |
 | 0.1 Repository foundation | Done — services healthy, gitleaks blocks planted secrets, README verified from clean copy | `[P0.1]` | 2026-11-24 |
+| 0.2 Backend bootstrap | Done — 36 tests (20 unit, 16 integration) green, 94% line coverage; healthy against Compose and as non-root Docker image | `[P0.2]` | 2026-11-24 |

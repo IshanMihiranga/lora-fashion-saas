@@ -1,0 +1,67 @@
+# Lora Fashions backend — settings shared by every profile.
+# Connection details live in the profile files:
+#   local -> application-local.yml (reads the repository's .env)
+#   dev   -> application-dev.yml   (environment variables only)
+#   prod  -> application-prod.yml  (environment variables only)
+
+spring:
+  application:
+    name: lora-fashion-backend
+  main:
+    banner-mode: off
+  lifecycle:
+    timeout-per-shutdown-phase: 20s
+
+  datasource:
+    hikari:
+      maximum-pool-size: ${APP_DB_POOL_SIZE:10}
+      pool-name: lora-hikari
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    validate-on-migrate: true
+
+  data:
+    mongodb:
+      # Indexes are created by code at start-up (CLAUDE.md §6), never by mapping annotations.
+      auto-index-creation: false
+
+server:
+  port: ${APP_PORT:${PORT:8080}}
+  shutdown: graceful
+  error:
+    include-stacktrace: never
+    include-message: never
+    include-binding-errors: never
+    include-exception: false
+    whitelabel:
+      enabled: false
+
+# Actuator: everything closed except liveness/readiness health.
+management:
+  endpoints:
+    access:
+      default: none
+    web:
+      discovery:
+        enabled: false
+      exposure:
+        include: health
+  endpoint:
+    health:
+      access: read-only
+      show-details: never
+      show-components: never
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include: readinessState,db,mongo

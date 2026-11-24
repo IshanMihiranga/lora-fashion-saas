@@ -1,0 +1,2 @@
+org.springframework.boot.EnvironmentPostProcessor=\
+lk.lorafashions.shared.config.RequiredSettingsCheck
