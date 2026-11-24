@@ -1,0 +1,13 @@
+# Gitleaks configuration — Lora Fashions
+# Uses the full default rule set. The only exception is the obviously fake
+# placeholder value used in .env.example; real secrets are still detected
+# everywhere, including in .env.example.
+title = "Lora Fashions gitleaks config"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Fake local-only placeholder values in templates"
+regexTarget = "match"
+regexes = ['''change-me-local-only''']

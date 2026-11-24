@@ -1,0 +1,34 @@
+# Lora Fashions — pre-commit hooks
+#   python -m pip install --user pre-commit
+#   pre-commit install
+#   pre-commit run --all-files
+#
+# Spotless (Java) is added in Part 0.2; Prettier and ESLint in Part 0.4.
+default_install_hook_types: [pre-commit]
+fail_fast: false
+
+repos:
+  # Secret scanning — blocks commits that contain credentials.
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
+
+  # File hygiene.
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+        args: [--fix=lf]
+        exclude: '\.(cmd|bat|ps1)$'
+      - id: check-yaml
+      - id: check-json
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: check-added-large-files
+        args: [--maxkb=1024]
+      - id: detect-private-key

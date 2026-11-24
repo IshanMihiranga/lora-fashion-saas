@@ -1,0 +1,27 @@
+# Normalise line endings: LF in the repository and working tree,
+# so scripts and the Maven wrapper run unchanged in Linux containers.
+* text=auto eol=lf
+
+# Windows-only scripts keep CRLF
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+
+# Shell scripts and the Maven wrapper must stay LF
+*.sh   text eol=lf
+mvnw   text eol=lf
+
+# Binary files
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.webp binary
+*.gif  binary
+*.ico  binary
+*.glb  binary
+*.gltf binary
+*.woff binary
+*.woff2 binary
+*.ttf  binary
+*.jar  binary
+*.pdf  binary

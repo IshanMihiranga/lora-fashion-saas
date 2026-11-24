@@ -1,0 +1,121 @@
+# Lora Fashions — local infrastructure
+#
+#   docker compose --env-file .env -f infra/docker-compose.yml up -d --wait
+#
+# Local development only. Every port is bound to 127.0.0.1.
+# All credentials come from .env (template: .env.example).
+name: lora
+
+services:
+  postgres:
+    image: postgres:17.12
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${LOCAL_POSTGRES_DB:?set LOCAL_POSTGRES_DB in .env}
+      POSTGRES_USER: ${LOCAL_POSTGRES_USER:?set LOCAL_POSTGRES_USER in .env}
+      POSTGRES_PASSWORD: ${LOCAL_POSTGRES_PASSWORD:?set LOCAL_POSTGRES_PASSWORD in .env}
+      TZ: UTC
+      PGTZ: UTC
+    ports:
+      - "127.0.0.1:${LOCAL_POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  mongo:
+    image: mongo:8.0.38
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${LOCAL_MONGO_ROOT_USER:?set LOCAL_MONGO_ROOT_USER in .env}
+      MONGO_INITDB_ROOT_PASSWORD: ${LOCAL_MONGO_ROOT_PASSWORD:?set LOCAL_MONGO_ROOT_PASSWORD in .env}
+      MONGO_INITDB_DATABASE: ${LOCAL_MONGO_DB:?set LOCAL_MONGO_DB in .env}
+    ports:
+      - "127.0.0.1:${LOCAL_MONGO_PORT:-27017}:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "quit(db.adminCommand({ ping: 1 }).ok ? 0 : 1)"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+      start_period: 15s
+
+  # S3-compatible object storage (replaces MinIO, see docs/decisions/ADR-0002).
+  # The S3 identity file is generated from .env at start-up; only the S3 port is published.
+  seaweedfs:
+    image: chrislusf/seaweedfs:4.55
+    restart: unless-stopped
+    environment:
+      S3_ACCESS_KEY: ${LOCAL_S3_ACCESS_KEY:?set LOCAL_S3_ACCESS_KEY in .env}
+      S3_SECRET_KEY: ${LOCAL_S3_SECRET_KEY:?set LOCAL_S3_SECRET_KEY in .env}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        umask 022
+        printf '{"identities":[{"name":"lora-local","credentials":[{"accessKey":"%s","secretKey":"%s"}],"actions":["Admin","Read","List","Tagging","Write"]}]}' \
+          "$$S3_ACCESS_KEY" "$$S3_SECRET_KEY" > /tmp/s3.json
+        exec /entrypoint.sh server -dir=/data -ip=seaweedfs -ip.bind=0.0.0.0 \
+          -master.volumeSizeLimitMB=256 -volume.max=0 \
+          -s3 -s3.port=8333 -s3.config=/tmp/s3.json
+    ports:
+      - "127.0.0.1:${LOCAL_S3_PORT:-8333}:8333"
+    volumes:
+      - seaweedfs-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8333/healthz || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 15s
+
+  # One-shot job: creates the private bucket if it does not exist, then exits 0.
+  s3-init:
+    image: amazon/aws-cli:2.42.2
+    depends_on:
+      seaweedfs:
+        condition: service_healthy
+    environment:
+      AWS_ACCESS_KEY_ID: ${LOCAL_S3_ACCESS_KEY:?set LOCAL_S3_ACCESS_KEY in .env}
+      AWS_SECRET_ACCESS_KEY: ${LOCAL_S3_SECRET_KEY:?set LOCAL_S3_SECRET_KEY in .env}
+      AWS_DEFAULT_REGION: ${LOCAL_S3_REGION:-us-east-1}
+      AWS_ENDPOINT_URL: http://seaweedfs:8333
+      S3_BUCKET: ${LOCAL_S3_BUCKET:?set LOCAL_S3_BUCKET in .env}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        if aws s3api head-bucket --bucket "$$S3_BUCKET" >/dev/null 2>&1; then
+          echo "Bucket $$S3_BUCKET already exists"
+        else
+          aws s3api create-bucket --bucket "$$S3_BUCKET" >/dev/null
+          echo "Bucket $$S3_BUCKET created"
+        fi
+    restart: "no"
+
+  mailpit:
+    image: axllent/mailpit:v1.34.0
+    restart: unless-stopped
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: "true"
+      MP_SMTP_AUTH_ALLOW_INSECURE: "true"
+      MP_MAX_MESSAGES: "5000"
+      TZ: UTC
+    ports:
+      - "127.0.0.1:${LOCAL_MAILPIT_SMTP_PORT:-1025}:1025"
+      - "127.0.0.1:${LOCAL_MAILPIT_UI_PORT:-8025}:8025"
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 5s
+
+volumes:
+  postgres-data:
+  mongo-data:
+  seaweedfs-data:

@@ -1,0 +1,67 @@
+# ---------------------------------------------------------------
+# Lora Fashions — files that must never be committed
+# ---------------------------------------------------------------
+
+# Secrets and local configuration (use .env.example as the template)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+secrets/
+
+# Database dumps and backups
+*.dump
+*.sql.gz
+*.bak
+*.archive
+dumps/
+backups/
+
+# Java / Maven
+target/
+*.class
+*.log
+hs_err_pid*
+.mvn/wrapper/maven-wrapper.jar
+
+# Node / frontend
+node_modules/
+dist/
+build/
+coverage/
+.vite/
+*.tsbuildinfo
+npm-debug.log*
+.npm/
+.eslintcache
+
+# Playwright
+playwright-report/
+test-results/
+blob-report/
+playwright/.cache/
+
+# IDEs and editors
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+.project
+.classpath
+.settings/
+
+# Operating systems
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local tool state
+.claude/settings.local.json
+logs/
+tmp/
